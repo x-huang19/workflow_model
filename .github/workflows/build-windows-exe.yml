@@ -1,0 +1,60 @@
+name: build-windows-exe
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest
+
+      - name: Build Windows EXE (onedir)
+        run: |
+          pyinstaller --noconfirm --clean build/pyinstaller.spec
+
+      - name: Prepare release bundle
+        shell: pwsh
+        run: |
+          New-Item -Path release -ItemType Directory -Force | Out-Null
+          New-Item -Path release/beam-track-analyzer -ItemType Directory -Force | Out-Null
+          Copy-Item -Path dist/beam-track-analyzer/* -Destination release/beam-track-analyzer -Recurse -Force
+          Copy-Item -Path config/runtime.example.yaml -Destination release/beam-track-analyzer/runtime.example.yaml -Force
+          Copy-Item -Path prompts/beam_track_prompt.txt -Destination release/beam-track-analyzer/beam_track_prompt.txt -Force
+          $tag = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}" } else { "manual-${{ github.run_number }}" }
+          $zipName = "beam-track-analyzer-$tag-windows-x64.zip"
+          Compress-Archive -Path release/beam-track-analyzer/* -DestinationPath "release/$zipName" -Force
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: beam-track-analyzer-windows
+          path: release/${{ env.ZIP_NAME }}
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/${{ env.ZIP_NAME }}

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beam-track-analyzer"
+version = "0.1.0"
+description = "Analyze beam tracks across frequency bands with local HF vision-language models"
+readme = "README.md"
+requires-python = ">=3.10"
+
+authors = [
+  { name = "workflow_model" }
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
