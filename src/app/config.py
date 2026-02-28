@@ -10,6 +10,7 @@ import yaml
 SUPPORTED_DTYPES = {"float16", "bfloat16", "float32"}
 SUPPORTED_DEVICES = {"auto", "cuda", "cpu"}
 SUPPORTED_FORMATS = {"json", "csv"}
+SUPPORTED_ATTN_IMPL = {"flash_attention_2", "sdpa", "eager"}
 
 
 @dataclass(slots=True)
@@ -18,6 +19,8 @@ class ModelConfig:
     trust_remote_code: bool = True
     dtype: str = "float16"
     device: str = "auto"
+    device_map: str | None = None
+    attn_implementation: str | None = None
     max_new_tokens: int = 1024
     temperature: float = 0.1
 
@@ -106,6 +109,16 @@ def load_config(config_file: str | Path) -> RuntimeConfig:
         trust_remote_code=bool(model_raw.get("trust_remote_code", True)),
         dtype=str(model_raw.get("dtype", "float16")),
         device=str(model_raw.get("device", "auto")),
+        device_map=(
+            str(model_raw.get("device_map")).strip()
+            if model_raw.get("device_map") is not None
+            else None
+        ),
+        attn_implementation=(
+            str(model_raw.get("attn_implementation")).strip()
+            if model_raw.get("attn_implementation") is not None
+            else None
+        ),
         max_new_tokens=int(model_raw.get("max_new_tokens", 1024)),
         temperature=float(model_raw.get("temperature", 0.1)),
     )
@@ -161,6 +174,15 @@ def validate_config(cfg: RuntimeConfig) -> None:
 
     if cfg.model.device not in SUPPORTED_DEVICES:
         raise ValueError(f"model.device must be one of {sorted(SUPPORTED_DEVICES)}")
+
+    if cfg.model.device_map is not None and not cfg.model.device_map:
+        raise ValueError("model.device_map cannot be empty string")
+
+    if cfg.model.attn_implementation is not None:
+        if cfg.model.attn_implementation not in SUPPORTED_ATTN_IMPL:
+            raise ValueError(
+                f"model.attn_implementation must be one of {sorted(SUPPORTED_ATTN_IMPL)}"
+            )
 
     if cfg.model.max_new_tokens <= 0:
         raise ValueError("model.max_new_tokens must be > 0")

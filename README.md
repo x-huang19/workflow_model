@@ -1,6 +1,6 @@
 # Beam Track Analyzer (Windows EXE)
 
-基于本地 Hugging Face 视觉语言模型（首发支持 Qwen2.5-VL 系）分析多频带波束历程图，提取轨迹并筛选“仅在 2-3 个频带内出现”的目标轨迹。
+基于本地 Hugging Face 视觉语言模型（支持 Qwen2.5-VL 与 Qwen3.5-35B-A3B）分析多频带波束历程图，提取轨迹并筛选“仅在 2-3 个频带内出现”的目标轨迹。
 
 ## 功能
 
@@ -30,6 +30,8 @@ python -m app.cli --config config/runtime.example.yaml
 复制并修改 `config/runtime.example.yaml`：
 
 - `model.local_model_dir`：本地模型目录（含 safetensors / config / tokenizer 等）
+- `model.device_map`：大模型可设为 `auto` 让 Hugging Face 自动分配
+- `model.attn_implementation`：推荐 V100 用 `sdpa`
 - `input.images`：图片路径与 `band_id`
 - `prompt.template_file` 与 `prompt.extra_instruction`
 - `matching`：轨迹匹配阈值与频带数量筛选
@@ -61,4 +63,5 @@ pyinstaller --noconfirm --clean build/pyinstaller.spec
 ## 注意事项
 
 - `torch + transformers` 打包后体积较大，建议使用目录式发布（已采用）。
-- 默认 `device: cuda`，若目标机无 NVIDIA CUDA 环境，请改为 `cpu` 或 `auto`。
+- 建议 `device: auto`。若目标机无 NVIDIA CUDA 环境会自动回退到 CPU。
+- Qwen3.5-35B-A3B 建议使用较新 `transformers`。若加载失败，先升级 `transformers` 后重试。
