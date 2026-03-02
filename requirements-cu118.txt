@@ -1,0 +1,14 @@
+--index-url https://download.pytorch.org/whl/cu118
+--extra-index-url https://pypi.org/simple
+
+# CUDA 11.8 runtime stack (pinned)
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+torchaudio==2.7.1+cu118
+transformers==4.57.7
+
+# project deps
+PyYAML>=6.0
+Pillow>=10.0.0
+safetensors>=0.4.3
+accelerate>=0.30.0

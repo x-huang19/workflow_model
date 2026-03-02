@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -34,12 +35,22 @@ def _resolve_device(torch: Any, preferred: str) -> str:
 
     if preferred == "cuda":
         if not torch.cuda.is_available():
-            raise RuntimeError("Requested CUDA device but CUDA is not available")
+            warnings.warn(
+                "Configured device='cuda' but CUDA is not available. Falling back to CPU.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return "cpu"
         return "cuda"
 
     if preferred.startswith("cuda:"):
         if not torch.cuda.is_available():
-            raise RuntimeError("Requested CUDA device but CUDA is not available")
+            warnings.warn(
+                f"Configured device='{preferred}' but CUDA is not available. Falling back to CPU.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return "cpu"
         try:
             gpu_idx = int(preferred.split(":", 1)[1])
         except ValueError as exc:
@@ -103,6 +114,12 @@ def _normalize_device_map(device_map: str) -> Any:
     )
 
 
+def _normalize_device_map_for_runtime(device_map: str, resolved_device: str) -> str:
+    if resolved_device == "cpu" and (device_map == "cuda" or device_map.startswith("cuda:")):
+        return "cpu"
+    return device_map
+
+
 @dataclass(slots=True)
 class VLMEngine:
     model: Any
@@ -130,7 +147,11 @@ class VLMEngine:
             "trust_remote_code": model_cfg.trust_remote_code,
         }
         if model_cfg.device_map is not None:
-            load_kwargs["device_map"] = _normalize_device_map(model_cfg.device_map)
+            runtime_device_map = _normalize_device_map_for_runtime(
+                model_cfg.device_map,
+                preferred_device,
+            )
+            load_kwargs["device_map"] = _normalize_device_map(runtime_device_map)
         if model_cfg.attn_implementation is not None:
             load_kwargs["attn_implementation"] = model_cfg.attn_implementation
 

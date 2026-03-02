@@ -35,6 +35,32 @@ beam-track-analyzer --config config/runtime.local.yaml
 PYTHONPATH=src python3 -m app.cli --config config/runtime.local.yaml
 ```
 
+## CUDA 11.8 环境（与你提供的版本一致）
+
+如果你要复现你之前可用的版本组合：
+- `pytorch-cuda 11.8`
+- `torch 2.7.1+cu118`
+- `transformers 4.57.7`
+
+可选方案 1（pip）：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements-dev-cu118.txt
+pip install -e .
+```
+
+如果你当前机器就是 CUDA 11.8，建议直接使用上面的 `requirements-dev-cu118.txt`，不要安装通用 `requirements-dev.txt`。
+
+可选方案 2（conda）：
+
+```bash
+conda env create -f environment-cu118.yml
+conda activate beam-track-cu118
+```
+
 ## 运行配置
 
 复制并修改配置（Linux 建议从 `config/runtime.linux.example.yaml` 开始）：
@@ -93,9 +119,11 @@ pyinstaller --noconfirm --clean build/pyinstaller.spec
   - `workflow_dispatch`
 - 流程：安装依赖 -> 运行测试 -> 打包 onedir exe -> 生成 zip -> 上传 artifact
 - 当触发为 tag 时，自动发布到 GitHub Release
+- 当前 workflow 已固定安装 CUDA 11.8 版本栈（`requirements-dev-cu118.txt`，即 `torch==2.7.1+cu118` + `transformers==4.57.7`）
 
 ## 注意事项
 
 - `torch + transformers` 打包后体积较大，建议使用目录式发布（已采用）。
 - 建议 `device: auto`。若目标机无 NVIDIA CUDA 环境会自动回退到 CPU。
 - Qwen3.5-35B-A3B 建议使用较新 `transformers`。若加载失败，先升级 `transformers` 后重试。
+- 若你手动写了 `device: cuda` 或 `device: cuda:0`，但机器无 CUDA，程序现在会自动降级到 CPU 并输出告警。

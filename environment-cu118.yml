@@ -1,0 +1,21 @@
+name: beam-track-cu118
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch=2.7.1
+  - pytorch-cuda=11.8
+  - torchvision=0.22.1
+  - torchaudio=2.7.1
+  - pip
+  - pip:
+      - transformers==4.57.7
+      - PyYAML>=6.0
+      - Pillow>=10.0.0
+      - safetensors>=0.4.3
+      - accelerate>=0.30.0
+      - pytest>=8.0.0
+      - pyinstaller>=6.9.0
+      - -e .
