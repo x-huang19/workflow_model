@@ -1,0 +1,32 @@
+model:
+  local_model_dir: "/opt/models/Qwen3.5-35B-A3B"
+  trust_remote_code: true
+  dtype: "float16"
+  device: "cuda:0"
+  device_map: "cuda:0"
+  attn_implementation: "sdpa"
+  max_new_tokens: 768
+  temperature: 0.1
+
+input:
+  images:
+    - path: "./data/freq_10k.png"
+      band_id: "10k"
+    - path: "./data/freq_12k.png"
+      band_id: "12k"
+    - path: "./data/freq_15k.png"
+      band_id: "15k"
+
+prompt:
+  template_file: "./prompts/beam_track_prompt.txt"
+  extra_instruction: "重点找出仅在2-3个频带中出现的目标轨迹"
+
+matching:
+  spatial_tolerance_px: 20
+  min_shared_bands: 2
+  max_shared_bands: 3
+
+output:
+  dir: "./outputs"
+  save_intermediate: true
+  formats: ["json", "csv"]

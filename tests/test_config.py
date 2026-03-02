@@ -127,3 +127,40 @@ output:
 
     with pytest.raises(ValueError, match="attn_implementation"):
         load_config(config_file)
+
+
+def test_load_config_supports_cuda_index_device(tmp_path: Path) -> None:
+    model_dir = tmp_path / "model"
+    model_dir.mkdir()
+
+    img = tmp_path / "a.png"
+    img.write_bytes(b"x")
+    prompt = tmp_path / "prompt.txt"
+    prompt.write_text("test", encoding="utf-8")
+
+    config_file = tmp_path / "runtime.yaml"
+    config_file.write_text(
+        f"""
+model:
+  local_model_dir: "{model_dir.as_posix()}"
+  device: "cuda:0"
+input:
+  images:
+    - path: "{img.as_posix()}"
+      band_id: "10k"
+prompt:
+  template_file: "{prompt.as_posix()}"
+matching:
+  spatial_tolerance_px: 20
+  min_shared_bands: 2
+  max_shared_bands: 3
+output:
+  dir: "outputs"
+  save_intermediate: true
+  formats: ["json"]
+""".strip(),
+        encoding="utf-8",
+    )
+
+    cfg = load_config(config_file)
+    assert cfg.model.device == "cuda:0"

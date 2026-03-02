@@ -13,21 +13,31 @@
 ## 快速开始（源码方式）
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements-dev.txt
-python -m app.cli --config config/runtime.example.yaml --dry-run
+pip install -e .
+cp config/runtime.linux.example.yaml config/runtime.local.yaml
+# 修改 runtime.local.yaml 中的 model.local_model_dir 和 input.images 路径
+beam-track-analyzer --config config/runtime.local.yaml --dry-run
 ```
 
 正式运行：
 
 ```bash
-python -m app.cli --config config/runtime.example.yaml
+beam-track-analyzer --config config/runtime.local.yaml
+```
+
+如果不想 `pip install -e .`，可使用：
+
+```bash
+PYTHONPATH=src python3 -m app.cli --config config/runtime.local.yaml
 ```
 
 ## 运行配置
 
-复制并修改 `config/runtime.example.yaml`：
+复制并修改配置（Linux 建议从 `config/runtime.linux.example.yaml` 开始）：
 
 - `model.local_model_dir`：本地模型目录（含 safetensors / config / tokenizer 等）
 - `model.device_map`：大模型可设为 `auto` 让 Hugging Face 自动分配
@@ -35,6 +45,30 @@ python -m app.cli --config config/runtime.example.yaml
 - `input.images`：图片路径与 `band_id`
 - `prompt.template_file` 与 `prompt.extra_instruction`
 - `matching`：轨迹匹配阈值与频带数量筛选
+
+### 单卡推理示例（指定 GPU）
+
+示例 1：在配置中固定到 `cuda:0`（推荐）
+
+```yaml
+model:
+  local_model_dir: "D:/models/Qwen3.5-35B-A3B"
+  trust_remote_code: true
+  dtype: "float16"
+  device: "cuda:0"
+  device_map: "cuda:0"
+  attn_implementation: "sdpa"
+  max_new_tokens: 512
+  temperature: 0.1
+```
+
+示例 2：用环境变量指定物理卡，再在配置里用 `cuda:0`
+
+Windows PowerShell:
+```powershell
+$env:CUDA_VISIBLE_DEVICES="1"
+beam-track-analyzer.exe --config .\\config\\runtime.yaml
+```
 
 ## 输出文件
 

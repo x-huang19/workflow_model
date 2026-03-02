@@ -29,10 +29,29 @@ def _resolve_device(torch: Any, preferred: str) -> str:
     if preferred == "auto":
         return "cuda" if torch.cuda.is_available() else "cpu"
 
-    if preferred == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("Requested CUDA device but CUDA is not available")
+    if preferred == "cpu":
+        return "cpu"
 
-    return preferred
+    if preferred == "cuda":
+        if not torch.cuda.is_available():
+            raise RuntimeError("Requested CUDA device but CUDA is not available")
+        return "cuda"
+
+    if preferred.startswith("cuda:"):
+        if not torch.cuda.is_available():
+            raise RuntimeError("Requested CUDA device but CUDA is not available")
+        try:
+            gpu_idx = int(preferred.split(":", 1)[1])
+        except ValueError as exc:
+            raise RuntimeError(f"Invalid CUDA device string: {preferred}") from exc
+
+        if gpu_idx < 0 or gpu_idx >= torch.cuda.device_count():
+            raise RuntimeError(
+                f"Requested CUDA device index {gpu_idx}, but available count is {torch.cuda.device_count()}"
+            )
+        return preferred
+
+    raise RuntimeError(f"Unsupported device setting: {preferred}")
 
 
 def _resolve_dtype(torch: Any, dtype_name: str) -> Any:
@@ -71,6 +90,19 @@ def _build_messages(prompt_text: str, image_paths: list[Path], use_uri: bool) ->
     return [{"role": "user", "content": content}]
 
 
+def _normalize_device_map(device_map: str) -> Any:
+    accelerate_literals = {"auto", "balanced", "balanced_low_0", "sequential"}
+    if device_map in accelerate_literals:
+        return device_map
+
+    if device_map == "cpu" or device_map == "cuda" or device_map.startswith("cuda:"):
+        return {"": device_map}
+
+    raise RuntimeError(
+        "Unsupported model.device_map value. Use one of auto/balanced/balanced_low_0/sequential/cpu/cuda/cuda:<index>."
+    )
+
+
 @dataclass(slots=True)
 class VLMEngine:
     model: Any
@@ -98,7 +130,7 @@ class VLMEngine:
             "trust_remote_code": model_cfg.trust_remote_code,
         }
         if model_cfg.device_map is not None:
-            load_kwargs["device_map"] = model_cfg.device_map
+            load_kwargs["device_map"] = _normalize_device_map(model_cfg.device_map)
         if model_cfg.attn_implementation is not None:
             load_kwargs["attn_implementation"] = model_cfg.attn_implementation
 

@@ -8,7 +8,7 @@ import yaml
 
 
 SUPPORTED_DTYPES = {"float16", "bfloat16", "float32"}
-SUPPORTED_DEVICES = {"auto", "cuda", "cpu"}
+SUPPORTED_DEVICE_LITERALS = {"auto", "cuda", "cpu"}
 SUPPORTED_FORMATS = {"json", "csv"}
 SUPPORTED_ATTN_IMPL = {"flash_attention_2", "sdpa", "eager"}
 
@@ -85,6 +85,15 @@ def _require_string(data: dict[str, Any], key: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"Missing or invalid value for: {key}")
     return value.strip()
+
+
+def _is_valid_device(device: str) -> bool:
+    if device in SUPPORTED_DEVICE_LITERALS:
+        return True
+    if device.startswith("cuda:"):
+        suffix = device.removeprefix("cuda:")
+        return suffix.isdigit()
+    return False
 
 
 def load_config(config_file: str | Path) -> RuntimeConfig:
@@ -172,8 +181,8 @@ def validate_config(cfg: RuntimeConfig) -> None:
     if cfg.model.dtype not in SUPPORTED_DTYPES:
         raise ValueError(f"model.dtype must be one of {sorted(SUPPORTED_DTYPES)}")
 
-    if cfg.model.device not in SUPPORTED_DEVICES:
-        raise ValueError(f"model.device must be one of {sorted(SUPPORTED_DEVICES)}")
+    if not _is_valid_device(cfg.model.device):
+        raise ValueError("model.device must be one of auto/cpu/cuda/cuda:<index>")
 
     if cfg.model.device_map is not None and not cfg.model.device_map:
         raise ValueError("model.device_map cannot be empty string")
