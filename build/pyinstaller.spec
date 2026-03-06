@@ -1,12 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules
 
-hiddenimports = collect_submodules("transformers")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SRC_DIR = PROJECT_ROOT / "src"
+ENTRYPOINT = SRC_DIR / "app" / "cli.py"
+
+# Avoid scanning every transformers submodule. Optional kernel deps such as
+# einops are not required for this app and create noisy collection warnings.
+hiddenimports = collect_submodules("transformers", filter=lambda name: "kernels" not in name)
 
 
 a = Analysis(
-    ["src/app/cli.py"],
-    pathex=["src"],
+    [str(ENTRYPOINT)],
+    pathex=[str(SRC_DIR)],
     binaries=[],
     datas=[],
     hiddenimports=hiddenimports,
