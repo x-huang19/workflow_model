@@ -2,7 +2,8 @@
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# GitHub Actions and local builds invoke PyInstaller from the repository root.
+PROJECT_ROOT = Path.cwd().resolve()
 SRC_DIR = PROJECT_ROOT / "src"
 ENTRYPOINT = SRC_DIR / "app" / "cli.py"
 
