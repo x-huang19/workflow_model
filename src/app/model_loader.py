@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
@@ -65,13 +65,23 @@ def _resolve_device(torch: Any, preferred: str) -> str:
     raise RuntimeError(f"Unsupported device setting: {preferred}")
 
 
-def _resolve_dtype(torch: Any, dtype_name: str) -> Any:
+def _resolve_dtype(torch: Any, dtype_name: str, resolved_device: str) -> Any:
     mapping = {
         "float16": torch.float16,
         "bfloat16": torch.bfloat16,
         "float32": torch.float32,
     }
-    return mapping[dtype_name]
+    resolved = mapping[dtype_name]
+    if dtype_name == "bfloat16" and resolved_device.startswith("cuda"):
+        is_supported = getattr(torch.cuda, "is_bf16_supported", None)
+        if callable(is_supported) and not is_supported():
+            warnings.warn(
+                "Configured dtype='bfloat16' but current CUDA device does not support BF16. Falling back to float16.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            return torch.float16
+    return resolved
 
 
 def _pick_input_device(model: Any, fallback_device: str) -> str:
@@ -131,7 +141,7 @@ class VLMEngine:
     def from_config(cls, model_cfg: ModelConfig) -> "VLMEngine":
         torch, transformers = _import_runtime_modules()
         preferred_device = _resolve_device(torch, model_cfg.device)
-        torch_dtype = _resolve_dtype(torch, model_cfg.dtype)
+        torch_dtype = _resolve_dtype(torch, model_cfg.dtype, preferred_device)
 
         processor = transformers.AutoProcessor.from_pretrained(
             str(model_cfg.local_model_dir),
@@ -177,7 +187,7 @@ class VLMEngine:
             joined = "\n".join(model_load_errors)
             raise RuntimeError(
                 f"Failed to load model from {model_cfg.local_model_dir}. "
-                "If this is Qwen3.5-A3B, upgrade transformers to latest compatible release.\n"
+                "If this is a Qwen3.5 family model, upgrade transformers to latest compatible release.\n"
                 f"{joined}"
             )
 
@@ -293,3 +303,4 @@ class VLMEngine:
         finally:
             for image in images:
                 image.close()
+

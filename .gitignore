@@ -10,3 +10,6 @@ build/*
 !build/pyinstaller.spec
 outputs/
 *.log
+models/
+papers/
+*.zip

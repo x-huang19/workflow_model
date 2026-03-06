@@ -1,5 +1,5 @@
 ﻿model:
-  local_model_dir: "/opt/models/Qwen3.5-9B"
+  local_model_dir: "../models/Qwen3.5-9B"
   trust_remote_code: true
   dtype: "float16"
   device: "cuda:0"
@@ -10,15 +10,15 @@
 
 input:
   images:
-    - path: "./data/freq_10k.png"
+    - path: "../data/freq_10k.png"
       band_id: "10k"
-    - path: "./data/freq_12k.png"
+    - path: "../data/freq_12k.png"
       band_id: "12k"
-    - path: "./data/freq_15k.png"
+    - path: "../data/freq_15k.png"
       band_id: "15k"
 
 prompt:
-  template_file: "./prompts/beam_track_prompt.txt"
+  template_file: "../prompts/beam_track_prompt.txt"
   extra_instruction: "Focus on targets that appear in only 2-3 bands."
 
 matching:
@@ -27,7 +27,6 @@ matching:
   max_shared_bands: 3
 
 output:
-  dir: "./outputs"
+  dir: "../outputs"
   save_intermediate: true
   formats: ["json", "csv"]
-

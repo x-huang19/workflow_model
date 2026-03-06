@@ -1,5 +1,5 @@
-model:
-  local_model_dir: "D:/models/Qwen3.5-35B-A3B"
+﻿model:
+  local_model_dir: "D:/models/Qwen3.5-9B"
   trust_remote_code: true
   dtype: "float16"
   device: "auto"
@@ -19,7 +19,7 @@ input:
 
 prompt:
   template_file: "prompts/beam_track_prompt.txt"
-  extra_instruction: "重点找出仅在2-3个频带中出现的目标轨迹"
+  extra_instruction: "Focus on targets that appear in only 2-3 bands."
 
 matching:
   spatial_tolerance_px: 20
@@ -30,3 +30,4 @@ output:
   dir: "outputs"
   save_intermediate: true
   formats: ["json", "csv"]
+
