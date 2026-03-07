@@ -39,9 +39,10 @@ jobs:
         run: |
           New-Item -Path release -ItemType Directory -Force | Out-Null
           New-Item -Path release/beam-track-analyzer -ItemType Directory -Force | Out-Null
+          New-Item -Path release/beam-track-analyzer/prompts -ItemType Directory -Force | Out-Null
           Copy-Item -Path dist/beam-track-analyzer/* -Destination release/beam-track-analyzer -Recurse -Force
           Copy-Item -Path config/runtime.example.yaml -Destination release/beam-track-analyzer/runtime.example.yaml -Force
-          Copy-Item -Path prompts/beam_track_prompt.txt -Destination release/beam-track-analyzer/beam_track_prompt.txt -Force
+          Copy-Item -Path prompts/beam_track_prompt.txt -Destination release/beam-track-analyzer/prompts/beam_track_prompt.txt -Force
           $tag = if ("${{ github.ref_type }}" -eq "tag") { "${{ github.ref_name }}" } else { "manual-${{ github.run_number }}" }
           $zipName = "beam-track-analyzer-$tag-windows-x64.zip"
           Compress-Archive -Path release/beam-track-analyzer/* -DestinationPath "release/$zipName" -Force
