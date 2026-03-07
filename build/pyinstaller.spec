@@ -5,7 +5,7 @@ from PyInstaller.utils.hooks import collect_submodules
 # GitHub Actions and local builds invoke PyInstaller from the repository root.
 PROJECT_ROOT = Path.cwd().resolve()
 SRC_DIR = PROJECT_ROOT / "src"
-ENTRYPOINT = SRC_DIR / "app" / "cli.py"
+ENTRYPOINT = SRC_DIR / "app" / "__main__.py"
 
 # Avoid scanning every transformers submodule. Optional kernel deps such as
 # einops are not required for this app and create noisy collection warnings.
