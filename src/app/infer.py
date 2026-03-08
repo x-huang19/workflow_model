@@ -4,8 +4,8 @@ import json
 import re
 from typing import Any
 
-from .config import RuntimeConfig
-from .types import BandTracks, Track
+from app.config import RuntimeConfig
+from app.types import BandTracks, Track
 
 _CODE_FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
 _TRAILING_COMMA_RE = re.compile(r",\s*([}\]])")
@@ -18,9 +18,9 @@ def build_inference_prompt(cfg: RuntimeConfig, template: str) -> str:
     ]
 
     instruction = [
-        "输入图像顺序与频带映射如下:",
+        "输入图像顺序与频带映射如�?",
         *band_lines,
-        "请严格输出 JSON，格式为:",
+        "请严格输�?JSON，格式为:",
         '{"bands":[{"band_id":"...","tracks":[{"track_id":"...","confidence":0.0,"points":[[x,y],[x,y]],"summary":"..."}]}]}',
     ]
 

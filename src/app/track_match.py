@@ -4,7 +4,7 @@ import math
 from dataclasses import dataclass
 from typing import Any
 
-from .types import BandTracks, Track
+from app.types import BandTracks, Track
 
 
 @dataclass(slots=True)

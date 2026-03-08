@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
@@ -7,7 +7,7 @@ from typing import Any
 
 from PIL import Image
 
-from .config import ModelConfig
+from app.config import ModelConfig
 
 
 def _import_runtime_modules() -> tuple[Any, Any]:

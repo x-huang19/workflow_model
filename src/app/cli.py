@@ -4,11 +4,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import load_config
-from .infer import align_band_ids, build_inference_prompt, parse_model_output
-from .io_utils import ensure_output_dir, load_prompt_template, setup_logging, write_csv, write_json
-from .model_loader import VLMEngine
-from .track_match import clusters_to_csv_rows, find_cross_band_tracks
+from app.config import load_config
+from app.infer import align_band_ids, build_inference_prompt, parse_model_output
+from app.io_utils import ensure_output_dir, load_prompt_template, setup_logging, write_csv, write_json
+from app.model_loader import VLMEngine
+from app.track_match import clusters_to_csv_rows, find_cross_band_tracks
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
