@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import re
@@ -18,9 +18,9 @@ def build_inference_prompt(cfg: RuntimeConfig, template: str) -> str:
     ]
 
     instruction = [
-        "输入图像顺序与频带映射如�?",
+        "Input image order and band mapping are as follows:",
         *band_lines,
-        "请严格输�?JSON，格式为:",
+        "Please output strict JSON in the following format:",
         '{"bands":[{"band_id":"...","tracks":[{"track_id":"...","confidence":0.0,"points":[[x,y],[x,y]],"summary":"..."}]}]}',
     ]
 

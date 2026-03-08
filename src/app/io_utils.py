@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import csv
 import json
@@ -33,7 +33,7 @@ def setup_logging(output_dir: Path) -> logging.Logger:
 def load_prompt_template(template_file: Path, extra_instruction: str) -> str:
     template = template_file.read_text(encoding="utf-8").strip()
     if extra_instruction.strip():
-        return f"{template}\n\n附加要求:\n{extra_instruction.strip()}"
+        return f"{template}\n\nAdditional instructions:\n{extra_instruction.strip()}"
     return template
 
 
