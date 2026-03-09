@@ -142,6 +142,11 @@ class VLMEngine:
         torch, transformers = _import_runtime_modules()
         preferred_device = _resolve_device(torch, model_cfg.device)
         torch_dtype = _resolve_dtype(torch, model_cfg.dtype, preferred_device)
+        hf_config = transformers.AutoConfig.from_pretrained(
+            str(model_cfg.local_model_dir),
+            local_files_only=True,
+            trust_remote_code=model_cfg.trust_remote_code,
+        )
 
         processor = transformers.AutoProcessor.from_pretrained(
             str(model_cfg.local_model_dir),
@@ -165,11 +170,19 @@ class VLMEngine:
         if model_cfg.attn_implementation is not None:
             load_kwargs["attn_implementation"] = model_cfg.attn_implementation
 
-        candidate_names = [
+        candidate_names: list[str] = []
+        for name in getattr(hf_config, "architectures", []) or []:
+            if isinstance(name, str) and name not in candidate_names:
+                candidate_names.append(name)
+
+        for name in [
             "AutoModelForImageTextToText",
             "AutoModelForVision2Seq",
             "AutoModelForCausalLM",
-        ]
+        ]:
+            if name not in candidate_names:
+                candidate_names.append(name)
+
         for name in candidate_names:
             model_cls = getattr(transformers, name, None)
             if model_cls is None:
@@ -303,4 +316,3 @@ class VLMEngine:
         finally:
             for image in images:
                 image.close()
-
