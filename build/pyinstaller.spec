@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_submodules
+from PyInstaller.utils.hooks import collect_submodules, copy_metadata
 
 # GitHub Actions and local builds invoke PyInstaller from the repository root.
 PROJECT_ROOT = Path.cwd().resolve()
@@ -11,12 +11,23 @@ ENTRYPOINT = SRC_DIR / "beam_track_analyzer_main.py"
 # einops are not required for this app and create noisy collection warnings.
 hiddenimports = collect_submodules("transformers", filter=lambda name: "kernels" not in name)
 
+# Keep package metadata for runtime version checks used by transformers and its stack.
+datas = []
+for dist_name in [
+    "transformers",
+    "huggingface-hub",
+    "tokenizers",
+    "safetensors",
+    "accelerate",
+]:
+    datas += copy_metadata(dist_name)
+
 
 a = Analysis(
     [str(ENTRYPOINT)],
     pathex=[str(SRC_DIR)],
     binaries=[],
-    datas=[],
+    datas=datas,
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
